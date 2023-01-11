@@ -5,8 +5,11 @@ const bodyParser = require('body-parser')
 const jwt = require('jsonwebtoken')
 const mongoose = require('mongoose')
 const UserModel = require('./Schema/user')
+const bcrypt=require('bcrypt')
+
 const dotenv = require('dotenv').config()
 const PORT = 5000 || process.env.PORT
+
 //mongoose connection
 mongoose.connect(process.env.DB_URL)
 mongoose.connection.
@@ -38,7 +41,8 @@ app.post('/api/user/register', async (req, res) => {
         })
         const create = await UserModel.create({userName, password})
         if (create) return res.status(200).json({
-            message: "Register SuccesFully"
+            message: "Register SuccesFully",
+            data:create
         })
     } catch (error) {
         console.log(error);
@@ -57,7 +61,7 @@ app.post('/api/user/login', async (req, res) => {
             userName
         })
         if (UserExist) {
-            if (UserExist.password === password) {
+            if (await bcrypt.compare(password, UserExist.password)) {
                 //user Rady To Login
                 const token = await jwt.sign({
                     userName,
